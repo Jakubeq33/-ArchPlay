@@ -1,0 +1,913 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>ArchPlayer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url("27d96b33cd8cb9f664c08ea5d3110eab.jpg") no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      backdrop-filter: blur(10px);
+    }
+
+    header, aside, section {
+      background: rgba(30, 30, 30, 0.7);
+      backdrop-filter: blur(14px);
+      border-radius: 16px;
+      margin: 10px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #c084fc;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .upload-form {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .upload-form label {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .upload-form label:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .upload-form input[type="file"] {
+      display: none;
+    }
+
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    aside {
+      width: 300px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .track {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .track:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.03);
+    }
+
+    .track img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .track-name {
+      flex: 1;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .account-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 10px;
+    }
+
+    section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .now-playing {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .now-playing img {
+      width: 200px;
+      height: 200px;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .controls, .progress, .volume {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 10px 0;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.3s;
+      min-width: 50px;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px);
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #c084fc;
+      cursor: pointer;
+    }
+
+    .playlist-controls {
+      margin-bottom: 12px;
+    }
+
+    select {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      padding: 8px;
+      border-radius: 8px;
+      min-width: 120px;
+    }
+
+    #user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #user-info img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: rgba(30, 30, 30, 0.9);
+      padding: 30px;
+      border-radius: 16px;
+      width: 400px;
+      max-width: 90%;
+      backdrop-filter: blur(14px);
+    }
+
+    .modal-content h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      color: #c084fc;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+    }
+
+    .time {
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .track-controls {
+      display: flex;
+      gap: 5px;
+    }
+
+    .track-controls button {
+      padding: 5px;
+      font-size: 0.8rem;
+      min-width: 30px;
+    }
+
+    .add-track-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .add-track-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .guest-message {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="new-user-modal" class="modal">
+  <div class="modal-content">
+    <h3>Utwórz nowe konto</h3>
+    <input type="text" id="new-username" placeholder="Nazwa użytkownika">
+    <input type="password" id="new-password" placeholder="Hasło">
+    <input type="file" id="new-avatar" accept="image/*">
+    <div class="modal-buttons">
+      <button onclick="submitNewUser()">Utwórz konto</button>
+      <button onclick="closeModal('new-user-modal')">Anuluj</button>
+    </div>
+  </div>
+</div>
+
+<div id="login-modal" class="modal">
+  <div class="modal-content">
+    <h3>Zaloguj się</h3>
+    <input type="text" id="login-username" placeholder="Nazwa użytkownika">
+    <input type="password" id="login-password" placeholder="Hasło">
+    <div class="modal-buttons">
+      <button onclick="loginUser()">Zaloguj</button>
+      <button onclick="closeModal('login-modal')">Anuluj</button>
+      <button onclick="switchToRegister()">Zarejestruj się</button>
+    </div>
+  </div>
+</div>
+
+<div id="add-track-modal" class="modal">
+  <div class="modal-content">
+    <h3>Dodaj nowy utwór</h3>
+    <div class="add-track-container">
+      <label for="audioFile" class="upload-button">
+        <i class="fas fa-music"></i> Wybierz plik muzyczny
+        <input type="file" id="audioFile" accept="audio/*" style="display: none;">
+      </label>
+      <label for="imageFile" class="upload-button">
+        <i class="fas fa-image"></i> Wybierz okładkę
+        <input type="file" id="imageFile" accept="image/*" style="display: none;">
+      </label>
+    </div>
+    <div class="modal-buttons">
+      <button onclick="addTrack()">Dodaj utwór</button>
+      <button onclick="closeModal('add-track-modal')">Anuluj</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <h1><i class="fas fa-music"></i> ArchPlayer</h1>
+  <div class="upload-form">
+    <button onclick="openAddTrackModal()" id="add-track-btn"><i class="fas fa-plus"></i> Dodaj muzykę</button>
+    <button onclick="newPlaylist()" id="new-playlist-btn"><i class="fas fa-plus"></i> Nowa playlista</button>
+    <select id="playlistSelector" onchange="switchPlaylist(this.value)"></select>
+  </div>
+  <div id="user-info">
+    <img id="user-avatar" src="https://via.placeholder.com/32" alt="avatar">
+    <span id="username">Gość</span>
+    <button id="login-button" onclick="openLoginModal()"><i class="fas fa-sign-in-alt"></i> Zaloguj</button>
+    <button id="logout-button" onclick="logoutUser()" style="display: none;"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
+  </div>
+</header>
+
+<main>
+<aside>
+  <div id="guest-message" class="guest-message">
+    <p>Zaloguj się, aby korzystać z pełnej funkcjonalności aplikacji.</p>
+    <button onclick="openLoginModal()" class="mt-2"><i class="fas fa-sign-in-alt"></i> Zaloguj się</button>
+    <button onclick="openModal('new-user-modal')" class="mt-2"><i class="fas fa-user-plus"></i> Zarejestruj się</button>
+  </div>
+
+  <h2 class="text-xl mb-4"><i class="fas fa-list"></i> Playlisty</h2>
+  <div id="playlist"></div>
+
+  <div class="account-buttons" id="account-buttons">
+    <button onclick="deleteCurrentUser()"><i class="fas fa-trash"></i> Usuń konto</button>
+  </div>
+</aside>
+
+<section>
+  <div class="now-playing">
+    <img id="nowPlayingImage" src="https://via.placeholder.com/200" alt="Now Playing">
+    <h3 id="nowPlayingName" class="text-xl font-semibold">Brak utworu</h3>
+    <p id="nowPlayingArtist" class="text-gray-300">-</p>
+  </div>
+
+  <div class="controls">
+    <button onclick="prevTrack()"><i class="fas fa-step-backward"></i></button>
+    <button onclick="togglePlayPause()" id="playPauseBtn"><i class="fas fa-play"></i></button>
+    <button onclick="nextTrack()"><i class="fas fa-step-forward"></i></button>
+    <button onclick="toggleLoop()" id="loopBtn"><i class="fas fa-redo"></i> OFF</button>
+  </div>
+
+  <div class="progress">
+    <div class="time" id="currentTime">0:00</div>
+    <input type="range" id="seekBar" min="0" max="100" value="0" oninput="seekTo()">
+    <div class="time" id="duration">0:00</div>
+  </div>
+
+  <div class="volume">
+    <label><i class="fas fa-volume-up"></i></label>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5" oninput="changeVolume(this.value)">
+  </div>
+
+  <audio id="audioPlayer" ontimeupdate="updateCurrentTime()" onended="nextTrack()"></audio>
+</section>
+</main>
+
+<script>
+  let currentUser = null;
+  let currentPlaylistName = null;
+  let currentTrackIndex = 0;
+  let isPlaying = false;
+  let loopMode = false;
+  let timeUpdateInterval;
+  let audioFile = null;
+  let imageFile = null;
+
+  window.onload = () => {
+    const username = localStorage.getItem("currentUser");
+    if (username) {
+      loadUser(username);
+    }
+    updateUI();
+
+    document.getElementById('seekBar').addEventListener('mousedown', () => {
+      clearInterval(timeUpdateInterval);
+    });
+
+    document.getElementById('seekBar').addEventListener('mouseup', () => {
+      timeUpdateInterval = setInterval(updateCurrentTime, 1000);
+    });
+
+    document.getElementById('audioPlayer').addEventListener('loadedmetadata', () => {
+      updateDuration();
+    });
+
+    document.getElementById('audioFile').addEventListener('change', function(e) {
+      audioFile = e.target.files[0];
+    });
+
+    document.getElementById('imageFile').addEventListener('change', function(e) {
+      imageFile = e.target.files[0];
+    });
+  };
+
+  function openModal(modalId) {
+    document.getElementById(modalId).style.display = "flex";
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+    if (modalId === 'add-track-modal') {
+      audioFile = null;
+      imageFile = null;
+      document.getElementById('audioFile').value = '';
+      document.getElementById('imageFile').value = '';
+    }
+  }
+
+  function switchToRegister() {
+    closeModal('login-modal');
+    openModal('new-user-modal');
+  }
+
+  function openLoginModal() {
+    closeModal('new-user-modal');
+    openModal('login-modal');
+  }
+
+  function openAddTrackModal() {
+    if (!currentUser) {
+      openLoginModal();
+      return;
+    }
+    if (!currentPlaylistName) {
+      alert("Wybierz najpierw playlistę!");
+      return;
+    }
+    openModal('add-track-modal');
+  }
+
+  function loadUser(username) {
+    const userData = localStorage.getItem("user_" + username);
+    if (userData) {
+      currentUser = JSON.parse(userData);
+      if (!currentUser.playlists) currentUser.playlists = {};
+      updateUserInfo();
+      updatePlaylistSelector();
+      if (Object.keys(currentUser.playlists).length > 0) {
+        const firstPlaylist = Object.keys(currentUser.playlists)[0];
+        switchPlaylist(firstPlaylist);
+      }
+    }
+  }
+
+  function updateUserInfo() {
+    if (currentUser) {
+      document.getElementById("username").textContent = currentUser.username;
+      document.getElementById("user-avatar").src = currentUser.avatar || "https://via.placeholder.com/32";
+      document.getElementById("login-button").style.display = "none";
+      document.getElementById("logout-button").style.display = "block";
+      document.getElementById("guest-message").style.display = "none";
+      document.getElementById("account-buttons").style.display = "flex";
+      document.getElementById("add-track-btn").disabled = false;
+      document.getElementById("new-playlist-btn").disabled = false;
+    } else {
+      document.getElementById("username").textContent = "Gość";
+      document.getElementById("user-avatar").src = "https://via.placeholder.com/32";
+      document.getElementById("login-button").style.display = "block";
+      document.getElementById("logout-button").style.display = "none";
+      document.getElementById("guest-message").style.display = "block";
+      document.getElementById("account-buttons").style.display = "none";
+      document.getElementById("add-track-btn").disabled = true;
+      document.getElementById("new-playlist-btn").disabled = true;
+    }
+  }
+
+  function loginUser() {
+    const username = document.getElementById("login-username").value;
+    const password = document.getElementById("login-password").value;
+
+    if (!username || !password) {
+      alert("Wypełnij nazwę użytkownika i hasło!");
+      return;
+    }
+
+    const userData = localStorage.getItem("user_" + username);
+    if (!userData) {
+      alert("Użytkownik nie istnieje!");
+      return;
+    }
+
+    const user = JSON.parse(userData);
+    if (user.password !== password) {
+      alert("Nieprawidłowe hasło!");
+      return;
+    }
+
+    localStorage.setItem("currentUser", username);
+    loadUser(username);
+    closeModal('login-modal');
+  }
+
+  function submitNewUser() {
+    const username = document.getElementById("new-username").value;
+    const password = document.getElementById("new-password").value;
+    const avatarInput = document.getElementById("new-avatar");
+    const avatarFile = avatarInput.files[0];
+
+    if (!username || !password) {
+      alert("Wypełnij nazwę użytkownika i hasło!");
+      return;
+    }
+
+    if (localStorage.getItem("user_" + username)) {
+      alert("Użytkownik o tej nazwie już istnieje!");
+      return;
+    }
+
+    const userData = {
+      username,
+      password,
+      avatar: "https://via.placeholder.com/32",
+      playlists: {
+        "Moja playlista": []
+      }
+    };
+
+    if (avatarFile) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        userData.avatar = e.target.result;
+        saveAndLoginUser(userData);
+      };
+      reader.readAsDataURL(avatarFile);
+    } else {
+      saveAndLoginUser(userData);
+    }
+  }
+
+  function saveAndLoginUser(userData) {
+    localStorage.setItem("user_" + userData.username, JSON.stringify(userData));
+    localStorage.setItem("currentUser", userData.username);
+    loadUser(userData.username);
+    closeModal('new-user-modal');
+  }
+
+  function logoutUser() {
+    if (!confirm("Czy na pewno chcesz się wylogować?")) return;
+
+    localStorage.removeItem("currentUser");
+    currentUser = null;
+    currentPlaylistName = null;
+    currentTrackIndex = 0;
+    document.getElementById("audioPlayer").src = "";
+    updateUserInfo();
+    updatePlaylist();
+    updateUI();
+  }
+
+  function deleteCurrentUser() {
+    if (!currentUser) {
+      alert("Nie jesteś zalogowany!");
+      return;
+    }
+
+    if (!confirm("Czy na pewno chcesz usunąć konto? Ta operacja jest nieodwracalna.")) return;
+
+    const username = localStorage.getItem("currentUser");
+    if (username) {
+      localStorage.removeItem("user_" + username);
+      logoutUser();
+    }
+  }
+
+
+  function newPlaylist() {
+    if (!currentUser) {
+      alert("Zaloguj się, aby tworzyć playlisty");
+      return;
+    }
+
+    const playlistName = prompt("Podaj nazwę playlisty:");
+    if (playlistName) {
+      if (!currentUser.playlists[playlistName]) {
+        currentUser.playlists[playlistName] = [];
+        saveUser(currentUser);
+        updatePlaylistSelector();
+        switchPlaylist(playlistName);
+      } else {
+        alert("Playlista o tej nazwie już istnieje.");
+      }
+    }
+  }
+
+  function saveUser(user) {
+    localStorage.setItem("user_" + user.username, JSON.stringify(user));
+  }
+
+  function updatePlaylistSelector() {
+    const selector = document.getElementById("playlistSelector");
+    selector.innerHTML = "";
+
+    if (!currentUser) {
+      selector.disabled = true;
+      selector.innerHTML = '<option value="">Brak playlist</option>';
+      return;
+    }
+
+    selector.disabled = false;
+    for (const playlistName in currentUser.playlists) {
+      const option = document.createElement("option");
+      option.value = playlistName;
+      option.textContent = playlistName;
+      selector.appendChild(option);
+    }
+
+    if (currentPlaylistName) {
+      selector.value = currentPlaylistName;
+    }
+  }
+
+  function switchPlaylist(playlistName) {
+    if (!currentUser || !currentUser.playlists[playlistName]) return;
+
+    currentPlaylistName = playlistName;
+    currentTrackIndex = 0;
+    updatePlaylist();
+    updateUI();
+  }
+
+  function updatePlaylist() {
+    const playlistDiv = document.getElementById("playlist");
+    playlistDiv.innerHTML = "";
+
+    if (!currentUser || !currentPlaylistName) {
+      playlistDiv.innerHTML = "<p class='text-gray-400'>Brak playlisty</p>";
+      return;
+    }
+
+    const playlist = currentUser.playlists[currentPlaylistName];
+    if (playlist.length === 0) {
+      playlistDiv.innerHTML = "<p class='text-gray-400'>Playlista jest pusta</p>";
+      return;
+    }
+
+    playlist.forEach((track, index) => {
+      const trackDiv = document.createElement("div");
+      trackDiv.className = "track";
+      trackDiv.onclick = () => playTrack(index);
+
+      trackDiv.innerHTML = `
+        <img src="${track.cover || 'https://via.placeholder.com/50'}" alt="${track.title}">
+        <div class="track-name">${track.title}</div>
+        <div class="track-controls">
+          <button onclick="event.stopPropagation(); deleteTrack(${index})"><i class="fas fa-trash"></i></button>
+        </div>
+      `;
+      playlistDiv.appendChild(trackDiv);
+    });
+  }
+
+  function deleteTrack(index) {
+    if (!confirm("Czy na pewno chcesz usunąć ten utwór?")) return;
+
+    currentUser.playlists[currentPlaylistName].splice(index, 1);
+    saveUser(currentUser);
+
+    if (currentTrackIndex === index) {
+      document.getElementById("audioPlayer").src = "";
+      currentTrackIndex = 0;
+      isPlaying = false;
+      document.getElementById("playPauseBtn").innerHTML = "<i class='fas fa-play'></i>";
+    } else if (currentTrackIndex > index) {
+      currentTrackIndex--;
+    }
+
+    updatePlaylist();
+    updateUI();
+  }
+
+
+  function addTrack() {
+    if (!audioFile) {
+      alert("Wybierz plik muzyczny!");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const audioURL = e.target.result;
+
+      const track = {
+        title: audioFile.name.replace(/\.[^/.]+$/, ""), // Remove file extension
+        audio: audioURL,
+        cover: "https://via.placeholder.com/50"
+      };
+
+      if (imageFile) {
+        const imageReader = new FileReader();
+        imageReader.onload = function(e) {
+          track.cover = e.target.result;
+          finishAddingTrack(track);
+        };
+        imageReader.readAsDataURL(imageFile);
+      } else {
+        finishAddingTrack(track);
+      }
+    };
+    reader.readAsDataURL(audioFile);
+  }
+
+  function finishAddingTrack(track) {
+    currentUser.playlists[currentPlaylistName].push(track);
+    saveUser(currentUser);
+
+    if (currentUser.playlists[currentPlaylistName].length === 1) {
+      currentTrackIndex = 0;
+      loadCurrentTrack();
+    }
+
+    updatePlaylist();
+    updateUI();
+    closeModal('add-track-modal');
+
+    // Reset file inputs
+    audioFile = null;
+    imageFile = null;
+    document.getElementById('audioFile').value = '';
+    document.getElementById('imageFile').value = '';
+  }
+
+
+  function playTrack(index) {
+    if (!currentUser || !currentPlaylistName) return;
+
+    const playlist = currentUser.playlists[currentPlaylistName];
+    if (index < 0 || index >= playlist.length) return;
+
+    currentTrackIndex = index;
+    loadCurrentTrack();
+    togglePlayPause();
+  }
+
+  function loadCurrentTrack() {
+    const audio = document.getElementById("audioPlayer");
+    const track = getCurrentTrack();
+
+    if (track) {
+      audio.src = track.audio;
+      audio.load();
+      updateUI();
+    }
+  }
+
+  function getCurrentTrack() {
+    if (!currentUser || !currentPlaylistName) return null;
+    const playlist = currentUser.playlists[currentPlaylistName];
+    return playlist[currentTrackIndex];
+  }
+
+  function togglePlayPause() {
+    const audio = document.getElementById("audioPlayer");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+
+    if (!audio.src) {
+      if (currentUser && currentPlaylistName && currentUser.playlists[currentPlaylistName].length > 0) {
+        playTrack(0);
+      }
+      return;
+    }
+
+    if (audio.paused) {
+      audio.play()
+        .then(() => {
+          playPauseBtn.innerHTML = "<i class='fas fa-pause'></i>";
+          isPlaying = true;
+          timeUpdateInterval = setInterval(updateCurrentTime, 1000);
+        })
+        .catch(e => console.error("Błąd odtwarzania:", e));
+    } else {
+      audio.pause();
+      playPauseBtn.innerHTML = "<i class='fas fa-play'></i>";
+      isPlaying = false;
+      clearInterval(timeUpdateInterval);
+    }
+  }
+
+  function prevTrack() {
+    if (!currentUser || !currentPlaylistName) return;
+
+    const playlist = currentUser.playlists[currentPlaylistName];
+    if (playlist.length === 0) return;
+
+    currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+    playTrack(currentTrackIndex);
+  }
+
+  function nextTrack() {
+    if (!currentUser || !currentPlaylistName) return;
+
+    const playlist = currentUser.playlists[currentPlaylistName];
+    if (playlist.length === 0) return;
+
+    if (loopMode) {
+      playTrack(currentTrackIndex);
+    } else {
+      currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+      playTrack(currentTrackIndex);
+    }
+  }
+
+  function toggleLoop() {
+    loopMode = !loopMode;
+    document.getElementById("loopBtn").innerHTML = loopMode ? "<i class='fas fa-redo'></i> ON" : "<i class='fas fa-redo'></i> OFF";
+  }
+
+  function updateDuration() {
+    const durationDisplay = document.getElementById("duration");
+    const audio = document.getElementById("audioPlayer");
+
+    if (isNaN(audio.duration) || !isFinite(audio.duration)) {
+      durationDisplay.textContent = "0:00";
+      return;
+    }
+
+    const minutes = Math.floor(audio.duration / 60);
+    const seconds = Math.floor(audio.duration % 60);
+    durationDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  function updateCurrentTime() {
+    const currentTimeDisplay = document.getElementById("currentTime");
+    const seekBar = document.getElementById("seekBar");
+    const audio = document.getElementById("audioPlayer");
+
+    if (isNaN(audio.duration) || !isFinite(audio.duration)) return;
+
+    const minutes = Math.floor(audio.currentTime / 60);
+    const seconds = Math.floor(audio.currentTime % 60);
+    currentTimeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    seekBar.value = (audio.currentTime / audio.duration) * 100;
+  }
+
+  function seekTo() {
+    const seekBar = document.getElementById("seekBar");
+    const audio = document.getElementById("audioPlayer");
+
+    if (isNaN(audio.duration) || !isFinite(audio.duration)) return;
+
+    audio.currentTime = (seekBar.value / 100) * audio.duration;
+  }
+
+  function changeVolume(value) {
+    const audio = document.getElementById("audioPlayer");
+    audio.volume = parseFloat(value);
+  }
+
+  function updateUI() {
+    const nowPlayingImage = document.getElementById("nowPlayingImage");
+    const nowPlayingName = document.getElementById("nowPlayingName");
+    const track = getCurrentTrack();
+
+    if (track) {
+      nowPlayingImage.src = track.cover || "https://via.placeholder.com/200";
+      nowPlayingName.textContent = track.title || "Nieznany utwór";
+    } else {
+      nowPlayingImage.src = "https://via.placeholder.com/200";
+      nowPlayingName.textContent = "Brak utworu";
+    }
+  }
+</script>
+</body>
+</html>
